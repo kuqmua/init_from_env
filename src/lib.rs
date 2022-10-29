@@ -1,7 +1,18 @@
-#[proc_macro_derive(InitFromEnvWithPanicIfFailedWithPanicIfFailed)]
-pub fn derive_init_from_env_with_panic_if_failed(
+#[proc_macro_derive(InitFromEnvWithPanicIfFailedWithPanicIfFailedFromTufaCommon)]
+pub fn derive_init_from_env_with_panic_if_failed_from_tufa_common(
     input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
+    generate(input, "tufa_common")
+}
+
+#[proc_macro_derive(InitFromEnvWithPanicIfFailedWithPanicIfFailedFromCrate)]
+pub fn derive_init_from_env_with_panic_if_failed_from_crate(
+    input: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    generate(input, "crate")
+}
+
+fn generate(input: proc_macro::TokenStream, path: &str) -> proc_macro::TokenStream {
     use convert_case::Casing;
     let ast: syn::DeriveInput =
         syn::parse(input).expect("InitFromEnvWithPanicIfFailed syn::parse(input) failed");
@@ -89,6 +100,8 @@ pub fn derive_init_from_env_with_panic_if_failed(
         }),
         _ => panic!("InitFromEnvWithPanicIfFailed only works on Struct"),
     };
+    let where_was_path_ident =
+        syn::Ident::new(&format!("{}::where_was::WhereWas", path), ident.span());
     let generated_enum_error_std_env_var_variants = match ast.data.clone() {
         syn::Data::Struct(datastruct) => datastruct.fields.into_iter().map(|field| {
             let enum_variant_ident = match field.ident {
@@ -103,7 +116,7 @@ pub fn derive_init_from_env_with_panic_if_failed(
                     source: std::env::VarError,
                     env_var_name: &'static str,
                     field_name:  &'static str,
-                    where_was: tufa_common::where_was::WhereWas,
+                    where_was: #where_was_path_ident,
                 },
             }
         }),
@@ -123,7 +136,7 @@ pub fn derive_init_from_env_with_panic_if_failed(
                     env_var_name: &'static str,
                     field_name:  &'static str,
                     expected_env_var_type: &'static str,
-                    where_was: tufa_common::where_was::WhereWas,
+                    where_was: #where_was_path_ident,
                 },
             }
         }),
