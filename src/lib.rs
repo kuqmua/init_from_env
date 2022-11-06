@@ -103,7 +103,7 @@ fn generate(
         }),
         _ => panic!("InitFromEnvWithPanicIfFailed only works on Struct"),
     };
-    let where_was_token_stream = format!("{path}::where_was::WhereWas")
+    let where_was_token_stream = format!("{path}::common::where_was::WhereWas")
         .parse::<proc_macro2::TokenStream>()
         .expect("path parse failed");
     let generated_enum_error_std_env_var_variants = match ast.data.clone() {
