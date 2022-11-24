@@ -166,12 +166,6 @@ fn generate(
             #(#generated_enum_error_parse_variants)*
         }
         impl #ident {
-            #[deny(
-                clippy::indexing_slicing,
-                clippy::unwrap_used,
-                clippy::integer_arithmetic,
-                clippy::float_arithmetic
-            )]
             pub fn new() -> Result<Self, #error_ident> {
                 let was_dotenv_enable = dotenv::dotenv().is_ok();
                 #(#generated_functions)*
