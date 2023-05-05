@@ -111,9 +111,6 @@ fn generate(
         }),
         _ => panic!("InitFromEnvWithPanicIfFailed only works on Struct"),
     };
-    // let where_was_token_stream = format!("{path}::common::where_was::WhereWas")
-    //     .parse::<proc_macro2::TokenStream>()
-    //     .expect("path parse failed");
     let generated_enum_error_std_env_var_variants = match ast.data.clone() {
         syn::Data::Struct(datastruct) => datastruct.fields.into_iter().map(|field| {
             let enum_variant_ident = match field.ident {
@@ -128,7 +125,6 @@ fn generate(
                     source: std::env::VarError,
                     env_var_name: &'static str,
                     field_name:  &'static str,
-                    // where_was: #where_was_token_stream,
                 },
             }
         }),
@@ -148,7 +144,6 @@ fn generate(
                     env_var_name: &'static str,
                     field_name:  &'static str,
                     expected_env_var_type: &'static str,
-                    // where_was: #where_was_token_stream,
                 },
             }
         }),
