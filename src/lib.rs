@@ -6,24 +6,8 @@
 )]
 #![allow(clippy::too_many_arguments)]
 
-#[proc_macro_derive(InitFromEnvWithPanicIfFailedWithPanicIfFailedFromTufaCommon)]
-pub fn derive_init_from_env_with_panic_if_failed_from_tufa_common(
-    input: proc_macro::TokenStream,
-) -> proc_macro::TokenStream {
-    generate(input, proc_macro_helpers::path::Path::TufaCommon)
-}
-
-#[proc_macro_derive(InitFromEnvWithPanicIfFailedWithPanicIfFailedFromCrate)]
-pub fn derive_init_from_env_with_panic_if_failed_from_crate(
-    input: proc_macro::TokenStream,
-) -> proc_macro::TokenStream {
-    generate(input, proc_macro_helpers::path::Path::Crate)
-}
-
-fn generate(
-    input: proc_macro::TokenStream,
-    path: proc_macro_helpers::path::Path,
-) -> proc_macro::TokenStream {
+#[proc_macro_derive(InitFromEnvWithPanicIfFailedWithPanicIfFailed)]
+pub fn init_from_env_with_panic_if_failed(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     proc_macro_helpers::panic_location::panic_location("InitFromEnvWithPanicIfFailedWithPanicIfFailed");
     use convert_case::Casing;
     let ast: syn::DeriveInput =
