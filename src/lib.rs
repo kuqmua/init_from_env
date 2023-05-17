@@ -77,15 +77,38 @@ pub fn init_from_env_with_panic_if_failed(input: proc_macro::TokenStream) -> pro
                 }
                 _ => panic!("InitFromEnvWithPanicIfFailed field.ty is not a syn::Type::Path!"),
             };
+            let enum_variant_ident = match field.ident {
+                None => panic!("InitFromEnvWithPanicIfFailed field.ident is None"),
+                Some(field_ident) => syn::Ident::new(
+                    &format!("{field_ident}").to_case(convert_case::Case::Pascal),
+                    ident.span(),
+                ),
+            };
             let env_var_name_as_screaming_snake_case_string =
                 syn::LitStr::new(&format!("{env_var_name}"), ident.span());
             quote::quote! {
                 let #enum_variant_ident_value: #enum_variant_type;
                 match std::env::var(#env_var_name_as_screaming_snake_case_string) {
-                    Err(e) => panic!("failed to find std::env::var {}", #env_var_name_as_screaming_snake_case_string),
+                    Err(e) => {
+                        return Err(#error_ident {
+                            source: #error_enum_ident::#error_std_env_var_ident(#error_std_env_var_enum_ident::#enum_variant_ident {
+                                source: e,
+                                env_var_name: #env_var_name_as_screaming_snake_case_string,
+                            }),
+                            was_dotenv_enable,
+                        });
+                    },
                     Ok(string_handle) => {
                         match string_handle.parse::<#enum_variant_type>() {
-                            Err(e) => panic!("failed to get {}", #enum_variant_type_as_string),
+                            Err(_) => {
+                                return Err(#error_ident {
+                                    source: #error_enum_ident::#error_parse_ident(#error_parse_enum_ident::#enum_variant_ident{
+                                        env_var_name: #env_var_name_as_screaming_snake_case_string,
+                                        expected_env_var_type: #enum_variant_type_as_string,
+                                    }),
+                                    was_dotenv_enable,
+                                });
+                            },
                             Ok(handle) => {
                                 #enum_variant_ident_value = handle;
                             },
@@ -109,7 +132,6 @@ pub fn init_from_env_with_panic_if_failed(input: proc_macro::TokenStream) -> pro
                 #enum_variant_ident {
                     source: std::env::VarError,
                     env_var_name: &'static str,
-                    field_name:  &'static str,
                 },
             }
         }),
@@ -127,7 +149,6 @@ pub fn init_from_env_with_panic_if_failed(input: proc_macro::TokenStream) -> pro
             quote::quote! {
                 #enum_variant_ident {
                     env_var_name: &'static str,
-                    field_name:  &'static str,
                     expected_env_var_type: &'static str,
                 },
             }
@@ -137,7 +158,7 @@ pub fn init_from_env_with_panic_if_failed(input: proc_macro::TokenStream) -> pro
     let gen = quote::quote! {
         #[derive(Debug)]
         pub struct #error_ident {
-            pub source: Box<#error_enum_ident>,
+            pub source: #error_enum_ident,
             pub was_dotenv_enable: bool,
         }
         #[derive(Debug)]
