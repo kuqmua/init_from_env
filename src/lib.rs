@@ -12,76 +12,74 @@ pub fn init_from_env_with_panic_if_failed(input: proc_macro::TokenStream) -> pro
     use convert_case::Casing;
     let ast: syn::DeriveInput =
         syn::parse(input).expect("InitFromEnvWithPanicIfFailed syn::parse(input) failed");
-    let ident = &ast.ident;
-    let error_ident = syn::Ident::new(&format!("{ident}Error"), ident.span());
-    let error_enum_ident = syn::Ident::new(&format!("{ident}ErrorEnum"), ident.span());
-    let error_std_env_var_ident = syn::Ident::new(&format!("{ident}StdEnvVar"), ident.span());
-    let error_std_env_var_enum_ident =
-        syn::Ident::new(&format!("{ident}ErrorStdEnvEnum"), ident.span());
-    let error_parse_ident = syn::Ident::new(&format!("{ident}Parse"), ident.span());
-    let error_parse_enum_ident = syn::Ident::new(&format!("{ident}ErrorParseEnum"), ident.span());
-    let value_suffix = "_value";
     match ast.data {
         syn::Data::Struct(datastruct) => {
+            let ident = &ast.ident;
+            let error_ident = syn::Ident::new(&format!("{ident}Error"), ident.span());
+            let error_enum_ident = syn::Ident::new(&format!("{ident}ErrorEnum"), ident.span());
+            let error_std_env_var_ident = syn::Ident::new(&format!("{ident}StdEnvVar"), ident.span());
+            let error_std_env_var_enum_ident = syn::Ident::new(&format!("{ident}ErrorStdEnvEnum"), ident.span());
+            let error_parse_ident = syn::Ident::new(&format!("{ident}Parse"), ident.span());
+            let error_parse_enum_ident = syn::Ident::new(&format!("{ident}ErrorParseEnum"), ident.span());
             let capacity = datastruct.fields.len();
             let mut generated_init_struct_fields: Vec<proc_macro2::TokenStream> = Vec::with_capacity(capacity);
             let mut generated_functions: Vec<proc_macro2::TokenStream> = Vec::with_capacity(capacity);
             let mut generated_enum_error_std_env_var_variants: Vec<proc_macro2::TokenStream> = Vec::with_capacity(capacity);
             let mut generated_enum_error_parse_variants: Vec<proc_macro2::TokenStream> = Vec::with_capacity(capacity);
             datastruct.fields.into_iter().for_each(|field| {
-                match field.ident.clone() {
+                let (
+                    enum_variant_ident_value,
+                    env_var_name,
+                    enum_variant_ident
+                ) = match &field.ident {
                     None => panic!("InitFromEnvWithPanicIfFailed field.ident is None"),
                     Some(field_ident) => {
-                        let enum_variant_ident_value =
-                            syn::Ident::new(&format!("{field_ident}{value_suffix}"), ident.span());
                         generated_init_struct_fields.push(quote::quote! {
-                            #field_ident: #enum_variant_ident_value,
+                            #field_ident: #field_ident
                         });
-                    }
-                }
-                ///////////////////
-                let enum_variant_ident_value: syn::Ident;
-                let env_var_name: syn::Ident;
-                match field.ident.clone() {
-                    None => panic!("InitFromEnvWithPanicIfFailed field.ident is None"),
-                    Some(field_ident) => {
-                        enum_variant_ident_value =
-                        syn::Ident::new(&format!("{field_ident}{value_suffix}"), ident.span());
-                        env_var_name = syn::Ident::new(
-                            &format!("{field_ident}")
-                                .to_case(convert_case::Case::Snake)
-                                .to_uppercase(),
-                            ident.span(),
-                        );
+                        (
+                            field_ident,
+                            syn::Ident::new(
+                                &format!("{field_ident}")
+                                    .to_case(convert_case::Case::Snake)
+                                    .to_uppercase(),
+                                ident.span(),
+                            ),
+                            syn::Ident::new(
+                            &format!("{field_ident}").to_case(convert_case::Case::Pascal),
+                                ident.span(),
+                            )
+                        )
                     }
                 };
-                let enum_variant_type: syn::Path;
-                let enum_variant_type_as_string: syn::LitStr;
-                match field.ty.clone() {
+                let (
+                    enum_variant_type,
+                    enum_variant_type_as_string,
+                ) = match &field.ty {
                     //todo: add different types support
                     syn::Type::Path(type_path) => {
-                        enum_variant_type = type_path.path.clone();
-                        let mut string_handle = String::from("");
-                        if type_path.path.segments.len() == 1 {
-                            string_handle = format!("{}", type_path.path.segments[0].ident);
-                        } else {
-                            for seg in type_path.path.segments {
-                                string_handle.push_str(&format!("{}:", seg.ident));
+                        let enum_variant_type = &type_path.path;
+                        let string_handle = {
+                            let mut string_handle = String::from("");
+                            if type_path.path.segments.len() == 1 {
+                                let first_segment = type_path.path.segments.first().unwrap_or_else(||panic!("failed to get first type_path.path.segments element"));
+                                string_handle = format!("{}", first_segment.ident);
+                            } else {
+                                for seg in &type_path.path.segments {
+                                    string_handle.push_str(&format!("{}:", seg.ident));
+                                }
+                                if !string_handle.is_empty() {
+                                    string_handle.pop();
+                                }
                             }
-                            if !string_handle.is_empty() {
-                                string_handle.pop();
-                            }
-                        }
-                        enum_variant_type_as_string = syn::LitStr::new(&string_handle, ident.span());
+                            string_handle
+                        };
+                        (
+                            enum_variant_type,
+                            syn::LitStr::new(&string_handle, ident.span())
+                        )
                     }
-                    _ => panic!("InitFromEnvWithPanicIfFailed field.ty is not a syn::Type::Path!"),
-                };
-                let enum_variant_ident = match field.ident.clone() {
-                    None => panic!("InitFromEnvWithPanicIfFailed field.ident is None"),
-                    Some(field_ident) => syn::Ident::new(
-                        &format!("{field_ident}").to_case(convert_case::Case::Pascal),
-                        ident.span(),
-                    ),
+                    _ => panic!("InitFromEnvWithPanicIfFailed field.ty supports only syn::Type::Path!"),
                 };
                 let env_var_name_as_screaming_snake_case_string =
                     syn::LitStr::new(&format!("{env_var_name}"), ident.span());
@@ -115,28 +113,12 @@ pub fn init_from_env_with_panic_if_failed(input: proc_macro::TokenStream) -> pro
                         },
                     }
                 });
-                ///////////
-                let enum_variant_ident = match field.ident.clone() {
-                    None => panic!("InitFromEnvWithPanicIfFailed field.ident is None"),
-                    Some(field_ident) => syn::Ident::new(
-                        &format!("{field_ident}").to_case(convert_case::Case::Pascal),
-                        ident.span(),
-                    ),
-                };
                 generated_enum_error_std_env_var_variants.push(quote::quote! {
                     #enum_variant_ident {
                         source: std::env::VarError,
                         env_var_name: &'static str,
                     },
                 });
-                ///////////////
-                let enum_variant_ident = match field.ident.clone() {
-                    None => panic!("InitFromEnvWithPanicIfFailed field.ident is None"),
-                    Some(field_ident) => syn::Ident::new(
-                        &format!("{field_ident}").to_case(convert_case::Case::Pascal),
-                        ident.span(),
-                    ),
-                };
                 generated_enum_error_parse_variants.push(quote::quote! {
                     #enum_variant_ident {
                         env_var_name: &'static str,
@@ -173,7 +155,7 @@ pub fn init_from_env_with_panic_if_failed(input: proc_macro::TokenStream) -> pro
                         #(#generated_functions_iter)*
                         Ok(
                             Self {
-                                #(#generated_init_struct_fields_iter)*
+                                #(#generated_init_struct_fields_iter,)*
                             }
                         )
                     }
