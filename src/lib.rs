@@ -6,8 +6,8 @@
 )]
 #![allow(clippy::too_many_arguments)]
 
-#[proc_macro_derive(InitFromEnvWithPanicIfFailedWithPanicIfFailed)]
-pub fn init_from_env_with_panic_if_failed(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+#[proc_macro_derive(InitFromEnv)]
+pub fn init_from_env(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     proc_macro_helpers::panic_location::panic_location();
     use convert_case::Casing;
     let ast: syn::DeriveInput =
