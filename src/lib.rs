@@ -17,15 +17,22 @@ pub fn init_from_env(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
             let ident = &ast.ident;
             let error_ident = syn::Ident::new(&format!("{ident}Error"), ident.span());
             let error_enum_ident = syn::Ident::new(&format!("{ident}ErrorEnum"), ident.span());
-            let error_std_env_var_ident = syn::Ident::new(&format!("{ident}StdEnvVar"), ident.span());
-            let error_std_env_var_enum_ident = syn::Ident::new(&format!("{ident}ErrorStdEnvEnum"), ident.span());
+            let error_std_env_var_ident =
+                syn::Ident::new(&format!("{ident}StdEnvVar"), ident.span());
+            let error_std_env_var_enum_ident =
+                syn::Ident::new(&format!("{ident}ErrorStdEnvEnum"), ident.span());
             let error_parse_ident = syn::Ident::new(&format!("{ident}Parse"), ident.span());
-            let error_parse_enum_ident = syn::Ident::new(&format!("{ident}ErrorParseEnum"), ident.span());
+            let error_parse_enum_ident =
+                syn::Ident::new(&format!("{ident}ErrorParseEnum"), ident.span());
             let capacity = datastruct.fields.len();
-            let mut generated_init_struct_fields: Vec<proc_macro2::TokenStream> = Vec::with_capacity(capacity);
-            let mut generated_functions: Vec<proc_macro2::TokenStream> = Vec::with_capacity(capacity);
-            let mut generated_enum_error_std_env_var_variants: Vec<proc_macro2::TokenStream> = Vec::with_capacity(capacity);
-            let mut generated_enum_error_parse_variants: Vec<proc_macro2::TokenStream> = Vec::with_capacity(capacity);
+            let mut generated_init_struct_fields: Vec<proc_macro2::TokenStream> =
+                Vec::with_capacity(capacity);
+            let mut generated_functions: Vec<proc_macro2::TokenStream> =
+                Vec::with_capacity(capacity);
+            let mut generated_enum_error_std_env_var_variants: Vec<proc_macro2::TokenStream> =
+                Vec::with_capacity(capacity);
+            let mut generated_enum_error_parse_variants: Vec<proc_macro2::TokenStream> =
+                Vec::with_capacity(capacity);
             datastruct.fields.into_iter().for_each(|field| {
                 let (
                     enum_variant_ident_value,
@@ -128,9 +135,11 @@ pub fn init_from_env(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
             });
             let generated_init_struct_fields_iter = generated_init_struct_fields.iter();
             let generated_functions_iter = generated_functions.iter();
-            let generated_enum_error_std_env_var_variants_iter = generated_enum_error_std_env_var_variants.iter();
-            let generated_enum_error_parse_variants_iter = generated_enum_error_parse_variants.iter();
-                let gen = quote::quote! {
+            let generated_enum_error_std_env_var_variants_iter =
+                generated_enum_error_std_env_var_variants.iter();
+            let generated_enum_error_parse_variants_iter =
+                generated_enum_error_parse_variants.iter();
+            let gen = quote::quote! {
                 #[derive(Debug)]
                 pub struct #error_ident {
                     pub source: #error_enum_ident,
@@ -163,7 +172,7 @@ pub fn init_from_env(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
             };
             // println!("{gen}");
             gen.into()
-        },
+        }
         _ => panic!("InitFromEnvWithPanicIfFailed only works on Struct"),
     }
 }
