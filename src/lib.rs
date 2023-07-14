@@ -9,7 +9,6 @@
 #[proc_macro_derive(InitFromEnv)]
 pub fn init_from_env(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     proc_macro_helpers::panic_location::panic_location();
-    use convert_case::Casing;
     let ast: syn::DeriveInput =
         syn::parse(input).expect("InitFromEnvWithPanicIfFailed syn::parse(input) failed");
     match ast.data {
@@ -47,13 +46,13 @@ pub fn init_from_env(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
                         (
                             field_ident,
                             syn::Ident::new(
-                                &format!("{field_ident}")
-                                    .to_case(convert_case::Case::Snake)
+                                &convert_case::Casing::to_case(&format!("{field_ident}")
+                                    ,convert_case::Case::Snake)
                                     .to_uppercase(),
                                 ident.span(),
                             ),
                             syn::Ident::new(
-                            &format!("{field_ident}").to_case(convert_case::Case::Pascal),
+                            &convert_case::Casing::to_case(&format!("{field_ident}"),convert_case::Case::Pascal),
                                 ident.span(),
                             )
                         )
