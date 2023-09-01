@@ -158,6 +158,7 @@ pub fn init_from_env(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
                     #(#generated_enum_error_parse_variants_iter)*
                 }
                 impl #ident {
+                    #[must_use]
                     pub fn new() -> Result<Self, #error_ident> {
                         let was_dotenv_enable = dotenv::dotenv().is_ok();
                         #(#generated_functions_iter)*
