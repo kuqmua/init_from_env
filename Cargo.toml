@@ -13,3 +13,6 @@ proc-macro2 = {version = "=1.0.67"}
 quote = {version = "=1.0.33"}
 syn = {version = "=1.0.107"}
 proc_macro_helpers = {path = "../proc_macro_helpers"}
+
+[lints]
+workspace = true
