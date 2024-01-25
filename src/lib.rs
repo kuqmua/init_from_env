@@ -38,7 +38,10 @@ pub fn init_from_env(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
                     env_var_name,
                     enum_variant_ident
                 ) = match &field.ident {
-                    None => panic!("InitFromEnvWithPanicIfFailed field.ident is None"),
+                    None => panic!(
+                        "InitFromEnvWithPanicIfFailed {}",
+                        proc_macro_helpers::naming_conventions::FIELD_IDENT_IS_NONE
+                    ),
                     Some(field_ident) => {
                         generated_init_struct_fields.push(quote::quote! {
                             #field_ident: #field_ident
@@ -52,7 +55,7 @@ pub fn init_from_env(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
                                 ident.span(),
                             ),
                             syn::Ident::new(
-                            &convert_case::Casing::to_case(&format!("{field_ident}"),convert_case::Case::Pascal),
+                            &convert_case::Casing::to_case(&format!("{field_ident}"),convert_case::Case::UpperCamel),
                                 ident.span(),
                             )
                         )
