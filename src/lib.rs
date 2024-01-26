@@ -69,7 +69,7 @@ pub fn init_from_env(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
                     syn::Type::Path(type_path) => {
                         let enum_variant_type = &type_path.path;
                         let string_handle = {
-                            let mut string_handle = String::from("");
+                            let mut string_handle = std::string::String::from("");
                             if type_path.path.segments.len() == 1 {
                                 let first_segment = type_path.path.segments.first().unwrap_or_else(||panic!("failed to get first type_path.path.segments element"));
                                 string_handle = format!("{}", first_segment.ident);
